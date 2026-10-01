@@ -8,7 +8,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import quote
 
-SITE_URL = "https://calsimsek-a11y.github.io/cengizusta/"  # sonunda / olmalı
+SITE_URL = "https://ustacengiz.com.tr/"  # sonunda / olmalı
 GSC_DOGRULAMA = ""  # Search Console meta etiketi içeriği (gerekirse)
 
 TEL_GORUNEN = "0542 800 32 63"

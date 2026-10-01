@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://calsimsek-a11y.github.io/cengizusta/sitemap.xml
+Sitemap: https://ustacengiz.com.tr/sitemap.xml
