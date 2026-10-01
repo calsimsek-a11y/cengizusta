@@ -13,6 +13,7 @@ GSC_DOGRULAMA = ""  # Search Console meta etiketi içeriği (gerekirse)
 
 TEL_GORUNEN = "0542 800 32 63"
 TEL_LINK = "tel:+905428003263"
+EPOSTA = "cengizbostanciusta@gmail.com"
 WA_MESAJ = "Merhaba Cengiz Usta, boya/tadilat işi için bilgi ve fiyat almak istiyorum."
 WA_LINK = "https://wa.me/905428003263?text=" + quote(WA_MESAJ)
 
@@ -109,6 +110,7 @@ def yapisal_veri():
         "description": "İstanbul'da boya badana, ev ve işyeri tadilatı, çatı tamiri, duvar ve tavan onarımı.",
         "url": SITE_URL,
         "telephone": "+90 542 800 32 63",
+        "email": EPOSTA,
         "image": SITE_URL + "img/og-cengiz-usta.jpg",
         "logo": SITE_URL + "favicon.svg",
         "founder": {"@type": "Person", "name": "Cengiz Bostancı"},
@@ -324,7 +326,7 @@ def sayfa():
 <footer class="alt">
   <div class="kap">
     <p><strong>Cengiz Bostancı – Sivas Yapı</strong> | İstanbul</p>
-    <p><a href="{TEL_LINK}">{TEL_GORUNEN}</a></p>
+    <p><a href="{TEL_LINK}">{TEL_GORUNEN}</a> · <a href="mailto:{EPOSTA}">{EPOSTA}</a></p>
   </div>
 </footer>
 
