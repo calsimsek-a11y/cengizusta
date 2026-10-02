@@ -172,7 +172,7 @@ def sayfa():
 <meta name="description" content="{aciklama}">
 <link rel="canonical" href="{SITE_URL}">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="theme-color" content="#B5532C">
+<meta name="theme-color" content="#1F3A5A">
 <meta name="geo.region" content="TR-34">
 <meta name="geo.placename" content="İstanbul">
 {gsc}

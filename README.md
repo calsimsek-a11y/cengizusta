@@ -9,12 +9,13 @@ Cengiz Bostancı'nın (Sivas Yapı, İstanbul) tek sayfalık tanıtım sitesi. B
 ## Tasarım sistemi (site/stil.css `:root`)
 | Jeton | Değer | Kullanım |
 |---|---|---|
-| `--zemin` | #FAF7F2 | kırık beyaz sayfa zemini |
-| `--yazi` | #23262B | antrasit metin |
-| `--vurgu` | #B5532C | terracotta: ana buton, başlık vurgusu |
-| `--vurgu-koyu` | #8F3F1F | hover |
-| `--vurgu-acik` | #F5E3D8 | ikon zemini, CTA kart |
-| `--wa` | #1E7F47 | WhatsApp butonu |
-| `--koyu` | #24272C | "Hakkında" ve alt bilgi zemini |
+| `--zemin` | #F7F7F5 | kırık beyaz sayfa zemini |
+| `--yazi` | #1B2430 | antrasit metin |
+| `--vurgu` | #1F3A5A | lacivert: ana buton, başlık vurgusu, iletişim bandı |
+| `--vurgu-koyu` | #142940 | hover |
+| `--vurgu-acik` | #E4EBF3 | ikon zemini, CTA kart |
+| `--bakir` | #A8692F | küçük etiketler ve konum/tik ikonları (az kullan) |
+| `--wa-ikon` | #1FA855 | yalnızca WhatsApp simgesi; buton beyaz + lacivert çerçeve |
+| `--koyu` | #17212D | "Hakkında" ve alt bilgi zemini |
 
 Yazı: sistem yazı tipi (hız için harici font yok). Butonlar en az 56 px yüksek; mobilde alttaki yapışkan bar 50 px.
