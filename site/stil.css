@@ -250,3 +250,33 @@ svg { width: 1.2em; height: 1.2em; fill: currentColor; flex: none; }
 }
 .yapiskan .btn { min-height: 50px; padding: 0 12px; }
 @media (min-width: 960px) { .yapiskan { display: none; } }
+
+/* ---------- Alt sayfalar (hizmet / semt) ---------- */
+.kirinti { padding-top: 16px; font-size: .9rem; color: var(--yazi-2); }
+.kirinti a { color: var(--vurgu); text-decoration: none; font-weight: 600; }
+.kirinti a:hover { text-decoration: underline; }
+.hero-alt-sayfa { padding-top: 12px; }
+@media (min-width: 960px) { .hero-alt-sayfa .hero-gorsel img { aspect-ratio: 4 / 3.4; } }
+.metin-izgara { display: grid; gap: 32px; }
+@media (min-width: 960px) { .metin-izgara { grid-template-columns: 1.6fr 1fr; gap: 64px; align-items: start; } }
+.metin { max-width: 70ch; }
+.metin h2 { font-size: clamp(1.4rem, 3.4vw, 1.9rem); margin-top: 1.6em; }
+.metin h2:first-child { margin-top: 0; }
+.metin p { color: var(--yazi-2); font-size: 1.08rem; }
+.yan { background: var(--yuzey); border: 1px solid var(--cizgi); border-radius: var(--r); padding: 24px; }
+@media (min-width: 960px) { .yan { position: sticky; top: 88px; } }
+.yan-bas { font-size: 1.15rem; margin-bottom: 14px; }
+.tik-liste { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.tik-liste li { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; }
+.tik-liste svg { color: var(--bakir); margin-top: 3px; }
+.bolge-liste li:has(a) { padding: 0; }
+.bolge-liste li a { display: flex; align-items: center; gap: 8px; padding: 14px; width: 100%; text-decoration: none; color: inherit; border-radius: var(--r-kucuk); }
+.bolge-liste li a:hover { background: var(--vurgu-acik); }
+.bag-liste { margin-top: 20px; }
+.bag-liste svg { color: var(--bakir); }
+.kart-link { display: inline-block; margin-top: 14px; color: var(--vurgu); }
+.alt-ic { display: grid; gap: 18px; }
+@media (min-width: 960px) { .alt-ic { grid-template-columns: 1fr 1.4fr; } }
+.alt-menu p { margin: 0 0 6px; line-height: 1.9; }
+.alt-menu span { color: #8D99A6; margin-right: 4px; }
+.alt-menu a { font-weight: 600; }

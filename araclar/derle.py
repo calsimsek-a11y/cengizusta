@@ -4,6 +4,7 @@ Alan adı değişince yalnızca SITE_URL'i değiştirip tekrar çalıştırın:
     python3 araclar/derle.py
 """
 import json
+import sys
 from datetime import date
 from pathlib import Path
 from urllib.parse import quote
@@ -18,6 +19,12 @@ WA_MESAJ = "Merhaba Cengiz Usta, boya/tadilat işi için bilgi ve fiyat almak is
 WA_LINK = "https://wa.me/905428003263?text=" + quote(WA_MESAJ)
 
 KOK = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from sayfalar import HIZMET_SAYFALARI, SEMT_SAYFALARI, TUM_SAYFALAR  # noqa: E402
+
+# Cloudflare Web Analytics (çerezsiz, onay bandı gerektirmez)
+ANALIZ = ('<script defer src="https://static.cloudflareinsights.com/beacon.min.js" '
+          'data-cf-beacon=\'{"token": "b0b68342c4fb4129890abe42bd98a6fe"}\'></script>')
 SITE = KOK / "site"
 
 BOLGELER = ["Beyoğlu", "Taksim", "Şişhane", "Tarlabaşı", "Dolapdere", "Piyalepaşa",
@@ -77,12 +84,12 @@ def picture(ad, alt, sizes, genislik, yukseklik, lazy=True, oncelik=False, cls="
     """AVIF + WebP kaynaklı, duyarlı <picture> üretir."""
     ws = [480, 900, 1400] if genislik >= 1400 else [480, 900]
     def srcset(ext):
-        return ", ".join(f"img/{ad}-{w}.{ext} {w}w" for w in ws)
+        return ", ".join(f"/img/{ad}-{w}.{ext} {w}w" for w in ws)
     nitelik = ' loading="lazy" decoding="async"' if lazy else ' fetchpriority="high"' if oncelik else ""
     c = f' class="{cls}"' if cls else ""
     return (f'<picture><source type="image/avif" srcset="{srcset("avif")}" sizes="{sizes}">'
             f'<source type="image/webp" srcset="{srcset("webp")}" sizes="{sizes}">'
-            f'<img src="img/{ad}-900.webp" alt="{alt}" width="{genislik}" height="{yukseklik}"{c}{nitelik}></picture>')
+            f'<img src="/img/{ad}-900.webp" alt="{alt}" width="{genislik}" height="{yukseklik}"{c}{nitelik}></picture>')
 
 
 IKON = {
@@ -139,6 +146,189 @@ def yapisal_veri():
                      for x in (isletme, sss, site))
 
 
+HIZMET_YOLU = {  # ana sayfa kartı görseli -> hizmet sayfası
+    "beyoglu-boya-badana-ustasi": "boya-badana", "ev-tadilati-olcu-alma": "tadilat",
+    "istanbul-kiremit-cati-tamiri": "cati-tamiri", "duvar-siva-onarimi": "duvar-tavan-tamiri",
+}
+SEMT_YOLU = {x["semt"]: x["yol"] for x in SEMT_SAYFALARI}
+BULUNMA = {"Beyoğlu": "Beyoğlu’nda", "Taksim": "Taksim’de", "Şişli": "Şişli’de",
+           "Beşiktaş": "Beşiktaş’ta", "Fatih": "Fatih’te"}
+
+
+def ust_bar():
+    hizmet = "".join(f'<a href="/{x["yol"]}/">{x["menu"]}</a>' for x in HIZMET_SAYFALARI)
+    return f"""<header class="ust">
+  <div class="kap ust-ic">
+    <a class="marka" href="/" aria-label="Cengiz Usta – Sivas Yapı ana sayfa">
+      <span class="marka-isaret" aria-hidden="true">SY</span>
+      <span><strong>Sivas Yapı</strong><small>Cengiz Bostancı</small></span>
+    </a>
+    <nav aria-label="Ana menü" class="menu">
+      {hizmet}<a href="/#bolgeler">Bölgeler</a><a href="/#iletisim">İletişim</a>
+    </nav>
+    <a class="ust-tel" href="{TEL_LINK}">{IKON["tel"]}<span>{TEL_GORUNEN}</span></a>
+  </div>
+</header>"""
+
+
+def alt_bolum():
+    hizmet = " · ".join(f'<a href="/{x["yol"]}/">{x["menu"]}</a>' for x in HIZMET_SAYFALARI)
+    semt = " · ".join(f'<a href="/{x["yol"]}/">{x["semt"]}</a>' for x in SEMT_SAYFALARI)
+    return f"""<footer class="alt">
+  <div class="kap alt-ic">
+    <div>
+      <p><strong>Cengiz Bostancı – Sivas Yapı</strong> | İstanbul</p>
+      <p><a href="{TEL_LINK}">{TEL_GORUNEN}</a> · <a href="mailto:{EPOSTA}">{EPOSTA}</a></p>
+    </div>
+    <nav aria-label="Alt menü" class="alt-menu">
+      <p><span>Hizmetler:</span> {hizmet}</p>
+      <p><span>Bölgeler:</span> {semt}</p>
+    </nav>
+  </div>
+</footer>
+
+<nav class="yapiskan" aria-label="Hızlı iletişim">
+  <a class="btn btn-ana" href="{TEL_LINK}">{IKON["tel"]}<span>Telefon Et</span></a>
+  <a class="btn btn-wa" href="{WA_LINK}" target="_blank" rel="noopener">{IKON["wa"]}<span>WhatsApp</span></a>
+</nav>"""
+
+
+def bas_etiketleri(baslik, aciklama, url, gorsel_ad, gorsel_alt, onyukle_sizes):
+    return f"""<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{baslik}</title>
+<meta name="description" content="{aciklama}">
+<link rel="canonical" href="{url}">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#1F3A5A">
+<meta name="geo.region" content="TR-34">
+<meta name="geo.placename" content="İstanbul">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Cengiz Usta – Sivas Yapı">
+<meta property="og:title" content="{baslik}">
+<meta property="og:description" content="{aciklama}">
+<meta property="og:url" content="{url}">
+<meta property="og:image" content="{SITE_URL}img/{gorsel_ad}-1400.webp">
+<meta property="og:image:alt" content="{gorsel_alt}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" as="image" type="image/avif" imagesrcset="/img/{gorsel_ad}-480.avif 480w, /img/{gorsel_ad}-900.avif 900w" imagesizes="{onyukle_sizes}">
+<link rel="stylesheet" href="/stil.css?v={date.today():%Y%m%d}">"""
+
+
+def alt_sayfa(x):
+    url = f"{SITE_URL}{x['yol']}/"
+    ad, alt = x["gorsel"]
+    gen, yuk = (1122, 1402) if ad == "cengiz-usta-duvar-tamiri" else (1400, 933)
+    ad_kisa = x["menu"] if x["tur"] == "hizmet" else x["semt"]
+
+    bolumler = "\n".join(
+        f'<h2>{h}</h2>' + "".join(f"<p>{p}</p>" for p in ps) for h, ps in x["bolumler"])
+    if x["tur"] == "hizmet":
+        liste_bas, liste = "Bu hizmet kapsamında", x["maddeler"]
+        kardes_bas = "Hizmet verdiğimiz semtler"
+        kardes = "".join(f'<li><a href="/{y["yol"]}/">{IKON["konum"]}{y["semt"]}</a></li>' for y in SEMT_SAYFALARI)
+    else:
+        liste_bas, liste = f"{x['semt']} ve çevresinde geldiğimiz yerler", x["mahalleler"]
+        kardes_bas = f"{BULUNMA[x['semt']]} verdiğimiz hizmetler"
+        kardes = "".join(f'<li><a href="/{y["yol"]}/">{IKON["tik"]}{y["menu"]}</a></li>' for y in HIZMET_SAYFALARI)
+    maddeler = "".join(f"<li>{IKON['tik']}{m}</li>" for m in liste)
+    sss = "\n".join(f'<details><summary>{q}</summary><p>{a}</p></details>' for q, a in x["sss"])
+
+    hizmet_adi = x["hizmet"] if x["tur"] == "hizmet" else "Boya badana, tadilat ve çatı tamiri"
+    alan = ([{"@type": "Place", "name": f"{b}, İstanbul"} for b in BOLGELER] if x["tur"] == "hizmet"
+            else [{"@type": "Place", "name": f"{x['semt']}, İstanbul"}] +
+                 [{"@type": "Place", "name": f"{m}, {x['semt']}, İstanbul"} for m in x["mahalleler"]])
+    veri = [
+        {"@context": "https://schema.org", "@type": "Service", "name": f"{hizmet_adi}" + ("" if x["tur"] == "hizmet" else f" – {x['semt']}"),
+         "serviceType": hizmet_adi, "url": url, "description": x["aciklama"],
+         "provider": {"@type": "HomeAndConstructionBusiness", "@id": SITE_URL + "#isletme",
+                      "name": "Cengiz Bostancı – Sivas Yapı", "telephone": "+90 542 800 32 63", "url": SITE_URL},
+         "areaServed": alan},
+        {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Ana sayfa", "item": SITE_URL},
+            {"@type": "ListItem", "position": 2, "name": ad_kisa, "item": url}]},
+        {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+            {"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in x["sss"]]},
+    ]
+    ld = "\n".join(f'<script type="application/ld+json">{json.dumps(v, ensure_ascii=False)}</script>' for v in veri)
+
+    return f"""<!doctype html>
+<html lang="tr">
+<head>
+{bas_etiketleri(x["baslik"], x["aciklama"], url, ad, alt, "(min-width: 960px) 46vw, 100vw")}
+{ld}
+</head>
+<body>
+<a class="atla" href="#icerik">İçeriğe geç</a>
+{ust_bar()}
+<main id="icerik">
+<nav class="kap kirinti" aria-label="Sayfa yolu"><a href="/">Ana sayfa</a> <span aria-hidden="true">›</span> <span>{ad_kisa}</span></nav>
+<section class="hero hero-alt-sayfa">
+  <div class="kap hero-ic">
+    <div class="hero-metin">
+      <p class="ust-etiket">{x["etiket"]}</p>
+      <h1>{x["h1"]}</h1>
+      <p class="hero-alt">{x["giris"]}</p>
+      {butonlar()}
+      <p class="hero-tel"><a href="{TEL_LINK}">{TEL_GORUNEN}</a><span>Telefonu Cengiz Usta açar.</span></p>
+    </div>
+    <figure class="hero-gorsel">
+      {picture(ad, alt, "(min-width: 960px) 46vw, 100vw", gen, yuk, lazy=False, oncelik=True)}
+    </figure>
+  </div>
+</section>
+
+<section class="bolum">
+  <div class="kap metin-izgara">
+    <article class="metin">
+{bolumler}
+    </article>
+    <aside class="yan">
+      <h2 class="yan-bas">{liste_bas}</h2>
+      <ul class="tik-liste">{maddeler}</ul>
+    </aside>
+  </div>
+</section>
+
+<section class="bolum bolum-acik">
+  <div class="kap dar">
+    <header class="bolum-bas">
+      <p class="ust-etiket">Sık sorulanlar</p>
+      <h2>{ad_kisa} hakkında sorular</h2>
+    </header>
+    <div class="sss">
+{sss}
+    </div>
+  </div>
+</section>
+
+<section class="bolum">
+  <div class="kap">
+    <h2>{kardes_bas}</h2>
+    <ul class="bolge-liste bag-liste">{kardes}</ul>
+  </div>
+</section>
+
+<section class="iletisim">
+  <div class="kap iletisim-ic">
+    <h2>İşinizi Anlatın, Fiyat Konuşalım</h2>
+    <p>Arayın ya da WhatsApp’tan yazın. İşin fotoğrafını gönderirseniz daha hızlı yardımcı olabiliriz.</p>
+    <a class="iletisim-tel" href="{TEL_LINK}">{TEL_GORUNEN}</a>
+    {butonlar(" cta-merkez")}
+  </div>
+</section>
+</main>
+
+{alt_bolum()}
+{ANALIZ}
+</body>
+</html>
+"""
+
+
 def sayfa():
     baslik = "Cengiz Usta | Boya Badana, Tadilat ve Çatı Tamiri İstanbul"
     aciklama = ("Beyoğlu, Taksim, Şişli, Beşiktaş, Fatih ve çevresinde boya badana, tadilat ve çatı tamiri. "
@@ -147,7 +337,9 @@ def sayfa():
 
     hizmet_kartlari = "\n".join(
         f'<article class="kart">{picture(ad, alt, "(min-width: 960px) 30vw, (min-width: 640px) 45vw, 100vw", 1400, 933)}'
-        f'<div class="kart-ic"><h3>{b}</h3><p>{t}</p></div></article>'
+        f'<div class="kart-ic"><h3>{b}</h3><p>{t}</p>'
+        + (f'<a class="link-ok kart-link" href="/{HIZMET_YOLU[ad]}/">{b} hakkında →</a>' if ad in HIZMET_YOLU else '')
+        + '</div></article>'
         for ad, b, t, alt in HIZMETLER)
     hizmet_kartlari += (f'<article class="kart kart-cta"><div class="kart-ic"><h3>Aklınızdaki iş burada yok mu?</h3>'
                         f'<p>Sıva, boya yenileme, su alan çatı, küçük tamirat… Ne olduğunu anlatın, yapılabilir mi hemen söyleyelim.</p>'
@@ -160,7 +352,8 @@ def sayfa():
         for ad, b, alt in SAHNELER)
 
     neden = "\n".join(f'<li><span class="neden-ikon">{IKON["tik"]}</span><h3>{b}</h3><p>{t}</p></li>' for b, t in NEDEN)
-    bolgeler = "\n".join(f'<li>{IKON["konum"]}{b}</li>' for b in BOLGELER)
+    bolgeler = "\n".join(f'<li><a href="/{SEMT_YOLU[b]}/">{IKON["konum"]}{b}</a></li>' if b in SEMT_YOLU
+                         else f'<li>{IKON["konum"]}{b}</li>' for b in BOLGELER)
     sss = "\n".join(f'<details><summary>{s}</summary><p>{c}</p></details>' for s, c in SSS)
 
     return f"""<!doctype html>
@@ -187,26 +380,15 @@ def sayfa():
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Cengiz Usta İstanbul'da bir evde duvar boyarken">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preload" as="image" type="image/avif" imagesrcset="img/beyoglu-boya-badana-ustasi-480.avif 480w, img/beyoglu-boya-badana-ustasi-900.avif 900w, img/beyoglu-boya-badana-ustasi-1400.avif 1400w" imagesizes="(min-width: 960px) 46vw, 100vw">
-<link rel="stylesheet" href="stil.css?v={date.today():%Y%m%d}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" as="image" type="image/avif" imagesrcset="/img/beyoglu-boya-badana-ustasi-480.avif 480w, /img/beyoglu-boya-badana-ustasi-900.avif 900w, /img/beyoglu-boya-badana-ustasi-1400.avif 1400w" imagesizes="(min-width: 960px) 46vw, 100vw">
+<link rel="stylesheet" href="/stil.css?v={date.today():%Y%m%d}">
 {yapisal_veri()}
 </head>
 <body>
 <a class="atla" href="#icerik">İçeriğe geç</a>
-<header class="ust">
-  <div class="kap ust-ic">
-    <a class="marka" href="./" aria-label="Cengiz Usta – Sivas Yapı ana sayfa">
-      <span class="marka-isaret" aria-hidden="true">SY</span>
-      <span><strong>Sivas Yapı</strong><small>Cengiz Bostancı</small></span>
-    </a>
-    <nav aria-label="Ana menü" class="menu">
-      <a href="#hizmetler">Hizmetler</a><a href="#hakkinda">Cengiz Usta</a><a href="#isler">İşlerden</a><a href="#bolgeler">Bölgeler</a><a href="#iletisim">İletişim</a>
-    </nav>
-    <a class="ust-tel" href="{TEL_LINK}">{IKON["tel"]}<span>{TEL_GORUNEN}</span></a>
-  </div>
-</header>
+{ust_bar()}
 
 <main id="icerik">
 <section class="hero">
@@ -323,24 +505,15 @@ def sayfa():
 </section>
 </main>
 
-<footer class="alt">
-  <div class="kap">
-    <p><strong>Cengiz Bostancı – Sivas Yapı</strong> | İstanbul</p>
-    <p><a href="{TEL_LINK}">{TEL_GORUNEN}</a> · <a href="mailto:{EPOSTA}">{EPOSTA}</a></p>
-  </div>
-</footer>
-
-<nav class="yapiskan" aria-label="Hızlı iletişim">
-  <a class="btn btn-ana" href="{TEL_LINK}">{IKON["tel"]}<span>Telefon Et</span></a>
-  <a class="btn btn-wa" href="{WA_LINK}" target="_blank" rel="noopener">{IKON["wa"]}<span>WhatsApp</span></a>
-</nav>
+{alt_bolum()}
 
 <dialog class="lightbox" aria-label="Görsel">
   <button type="button" class="lightbox-kapat" aria-label="Kapat">×</button>
   <picture><source type="image/avif"><img alt="" width="1400" height="933"></picture>
   <p></p>
 </dialog>
-<script src="site.js?v={date.today():%Y%m%d}" defer></script>
+<script src="/site.js?v={date.today():%Y%m%d}" defer></script>
+{ANALIZ}
 </body>
 </html>
 """
@@ -355,7 +528,7 @@ def sayfa_404():
 <p class="ust-etiket">404</p><h1>Aradığınız sayfa bulunamadı</h1>
 <p>Boya, badana, tadilat ve çatı tamiri için ana sayfaya dönebilir ya da hemen arayabilirsiniz.</p>
 <div class="cta-row cta-merkez"><a class="btn btn-ana" href="{SITE_URL}">Ana sayfa</a><a class="btn btn-wa" href="{TEL_LINK}">{TEL_GORUNEN}</a></div>
-</div></main></body></html>
+</div></main>{ANALIZ}</body></html>
 """
 
 
@@ -363,15 +536,20 @@ def main():
     (SITE / "index.html").write_text(sayfa(), encoding="utf-8")
     (SITE / "404.html").write_text(sayfa_404(), encoding="utf-8")
     (SITE / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE_URL}sitemap.xml\n", encoding="utf-8")
+    for x in TUM_SAYFALAR:
+        (SITE / x["yol"]).mkdir(exist_ok=True)
+        (SITE / x["yol"] / "index.html").write_text(alt_sayfa(x), encoding="utf-8")
     gorseller = "".join(
         f"<image:image><image:loc>{SITE_URL}img/{ad}-1400.webp</image:loc></image:image>"
         for ad, *_ in SAHNELER)
+    bugun = date.today().isoformat()
+    urller = [f"<url><loc>{SITE_URL}</loc><lastmod>{bugun}</lastmod>{gorseller}</url>"] + [
+        f"<url><loc>{SITE_URL}{x['yol']}/</loc><lastmod>{bugun}</lastmod></url>" for x in TUM_SAYFALAR]
     (SITE / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
         'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'
-        f"<url><loc>{SITE_URL}</loc><lastmod>{date.today().isoformat()}</lastmod>{gorseller}</url>\n"
-        "</urlset>\n", encoding="utf-8")
+        + "\n".join(urller) + "\n</urlset>\n", encoding="utf-8")
     (SITE / ".nojekyll").write_text("")
     print("Derlendi:", SITE_URL)
 

@@ -9,8 +9,8 @@
   document.querySelectorAll('.galeri-oge').forEach(function (b) {
     b.addEventListener('click', function () {
       var ad = b.dataset.ad;
-      kaynak.srcset = 'img/' + ad + '-1400.avif';
-      img.src = 'img/' + ad + '-1400.webp';
+      kaynak.srcset = '/img/' + ad + '-1400.avif';
+      img.src = '/img/' + ad + '-1400.webp';
       img.alt = b.querySelector('img').alt;
       yazi.textContent = b.dataset.baslik;
       kutu.showModal();
